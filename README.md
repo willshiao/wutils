@@ -1,4 +1,6 @@
 # wutils
+[![](https://img.shields.io/pypi/v/wutils.svg)](https://pypi.org/pypi/wutils/)
+
 A collection of Python utility functions/classes.
 
 Currently only provides one class: `wutils.mat.MarkedMatrix`, which is a wrapper around a `numpy.array` with additional row labels and helper functions.
