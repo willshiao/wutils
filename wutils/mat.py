@@ -6,7 +6,14 @@ Currently only contains the MarkedMatrix class.
 from collections import OrderedDict
 import numpy as np
 import seaborn as sns
+from xgboost import XGBClassifier
 from sklearn.manifold import TSNE
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import KFold
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.svm import LinearSVC
 
 class MarkedMatrix:
     """
@@ -111,3 +118,94 @@ class MarkedMatrix:
             out[name] = mat[last_loc:loc]
             last_loc = loc
         return out
+
+    def custom_classify(self, classifiers, chosen_labels=None, n_splits=5, verbose=True):
+        """Tests the performance of a classifier on the MarkedMatrix
+
+        Arguments:
+            classifiers {dict} -- A dictionary of classifier name to model of sklearn
+              compatible classifiers.
+            chosen_labels {set|list} -- A set/list of strings of which labels to use for classification.
+              Defaults to all labels. (default: {None})
+
+        Keyword Arguments:
+            n_splits {int} -- The number of splits to use for k-fold cross-validation (default: {5})
+            verbose {bool} -- Whether or not to print progress indicators. (default: {True})
+
+        Returns:
+            {dict} -- A dictionary of model name to statistics about its accuracy.
+        """
+        kf = KFold(n_splits=n_splits, shuffle=True)
+        pieces = self.get_pieces()
+
+        if chosen_labels is None:
+            M = self.mat
+            classes = set(self.loc_idx.values())
+        else:
+            M = np.vstack([v for k, v in pieces.items() if k in chosen_labels])
+            classes = set(chosen_labels)
+
+        class_labels = {c: i for i, c in enumerate(classes)}
+        f1_average = 'binary' if len(class_labels) <= 2 else None
+        class_pieces = []
+
+        for label, val in pieces.items():
+            if label not in classes:
+                continue
+            num_items = val.shape[0]
+            class_pieces.extend([class_labels[label]] * num_items)
+        y = np.array(class_pieces)
+
+        stats = {}
+        for cnt, (train_index, test_index) in enumerate(kf.split(M)):
+            if verbose:
+                print(f'========== Performing k-fold validation ({cnt}) ==========')
+            X_train, X_test = M[train_index], M[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            for name, model in classifiers.items():
+                if verbose:
+                    print(f'Training {name}')
+                model.fit(X_train, y_train)
+                y_hat = model.predict(X_test)
+                acc = accuracy_score(y_test, y_hat)
+                f1 = f1_score(y_test, y_hat, average=f1_average)
+                
+                if name in stats:
+                    stats[name]['acc'].append(acc)
+                    stats[name]['f1'].append(f1)
+                else:
+                    stats[name] = {
+                        'acc': [acc],
+                        'f1': [f1]
+                    }
+                
+                if verbose:
+                    print(f'{name} accuracy: {acc}')
+                    print(f'{name} F1 score: {f1}')
+                    print('-'*15)
+        return stats
+    
+    def default_classify(self, **kwargs):
+        """Calls `custom_classify` with some resonable default classifiers.
+        Currently defaults to:
+        - RandomForest
+        - XGBoost
+        - KNN
+        - Logistic regression
+        - Linear SVM
+
+        Keyword Arguments:
+           **kwargs -- Takes same arguments as custom_classify.
+
+        Returns:
+            {dict} -- A dictionary of model name to statistics about its performance.
+        """
+        classifiers = {
+            'Random Forest': RandomForestClassifier(n_estimators=100),
+            'XGBoost': XGBClassifier(),
+            'KNN': KNeighborsClassifier(),
+            'Logistic Regression': LogisticRegression(max_iter=500),
+            'Linear SVM': LinearSVC(dual=False),
+        }
+        return self.custom_classify(classifiers, **kwargs)

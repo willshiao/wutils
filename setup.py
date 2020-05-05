@@ -19,5 +19,6 @@ setup(
         "numpy",
         "seaborn",
         "pytest",
+        "xgboost"
     ],
 )
