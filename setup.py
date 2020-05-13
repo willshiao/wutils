@@ -5,14 +5,15 @@ from setuptools import setup
 
 setup(
     name='wutils',
-    version='0.1.2',
-    author='William Shioa',
+    version='0.1.3',
+    author='William Shiao',
     author_email='willshiao@gmail.com',
-    packages=['wutils', 'wutils.test'],
+    packages=['wutils'],
     scripts=[],
     url='http://pypi.python.org/pypi/wutils/',
     license='LICENSE',
     description='A collection of useful functions/classes for data analysis and ML.',
+    long_description_content_type='text/markdown',
     long_description=open('README.md').read(),
     install_requires=[
         "scikit-learn",
