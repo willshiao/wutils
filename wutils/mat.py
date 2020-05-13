@@ -14,6 +14,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.svm import LinearSVC
+from scipy.spatial.distance import cdist
+import matplotlib.pyplot as plt
 
 class MarkedMatrix:
     """
@@ -71,7 +73,7 @@ class MarkedMatrix:
         """
         return self.loc_idx
 
-    def tsne(self, tsne_args=None, ax=None, plot=True):
+    def tsne(self, tsne_args=None, ax=None, plot=True, scatter_args={}):
         """Runs TSNE on the matrix and plots the results using seaborn
         with the labels defined at the construction of the MarkedMatrix.
 
@@ -96,7 +98,7 @@ class MarkedMatrix:
         last_loc = 0
         if plot:
             for loc, name in self.loc_idx.items():
-                sns.scatterplot(x=M[last_loc:loc, 0], y=M[last_loc:loc, 1], label=name, ax=ax)
+                sns.scatterplot(x=M[last_loc:loc, 0], y=M[last_loc:loc, 1], label=name, ax=ax, **scatter_args)
                 last_loc = loc
         return M
 
@@ -185,7 +187,7 @@ class MarkedMatrix:
                     print(f'{name} F1 score: {f1}')
                     print('-'*15)
         return stats
-    
+
     def default_classify(self, **kwargs):
         """Calls `custom_classify` with some resonable default classifiers.
         Currently defaults to:
@@ -209,3 +211,28 @@ class MarkedMatrix:
             'Linear SVM': LinearSVC(dual=False),
         }
         return self.custom_classify(classifiers, **kwargs)
+
+    def distance_histogram(self, label, ax=None, nn_only=True, distance_metric='sqeuclidean'):
+        labels = set(self.loc_idx.values())
+        other_labels = labels - set([label])
+        pieces = self.get_pieces()
+
+        for other_label in other_labels:
+            dists = cdist(pieces[other_label], pieces[label], distance_metric)
+            if nn_only:
+                dist_arr = np.min(dists, axis=1).ravel()
+            else:
+                dist_arr = dists.ravel()
+            sns.distplot(dist_arr, label=other_label, ax=ax)
+            plt.title(f'Distribution plot of {"NN" if nn_only else "all"} distances to {label}')
+            plt.legend()
+
+    @staticmethod
+    def from_df(df, data_col, label_col):
+        labels = set(df[label_col])
+        mapping = []
+
+        for label in labels:
+            sub_df = df[df['label'] == label]
+            mapping.append((label, np.vstack(list(sub_df[data_col]))))
+        return MarkedMatrix(mapping)
