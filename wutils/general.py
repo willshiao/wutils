@@ -2,6 +2,7 @@
 General-purpose miscellaneous functions.
 """
 import pickle
+import numpy as np
 
 def save_pickle(obj, loc, protocol=pickle.HIGHEST_PROTOCOL):
     """Saves a pickled version of `obj` to `loc`.
@@ -34,3 +35,25 @@ def load_pickle(loc):
     """
     with open(loc, 'rb') as f:
         return pickle.load(f)
+
+def sample_mat(mat, n, replace=False, return_idxs=False):
+    """Sample `n` random rows from mat.
+    Returns an array of the rows sampled from the matrix.
+
+    Arguments:
+        mat {np.array} -- A matrix to sample rows from.
+        n {int} -- The number of rows to sample.
+
+    Keyword Arguments:
+        replace {bool} -- Whether or not to sample with replacement. (default: {False})
+        return_idxs {bool} -- Whether or not to return the indexes of the selected rows. (default: {False})
+
+    Returns:
+        np.array|tuple -- Returns a matrix containing the sampled rows, or if `return_idxs` is set,
+            returns a tuple containing the indexes of the selected rows and the sampled matrix.
+    """    
+    row_idxs = np.random.choice(mat.shape[0], n, replace=replace)
+    sampled = mat[row_idxs, :]
+    if return_idxs:
+        return (row_idxs, sampled)
+    return sampled
