@@ -13,6 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, f1_score
+from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
@@ -120,6 +121,47 @@ class MarkedMatrix:
             out[name] = mat[last_loc:loc]
             last_loc = loc
         return out
+
+    def single_split_classify(self, classifier, chosen_labels=None, verbose=True, **kwargs):
+        """Tests the performance of a classifier on the MarkedMatrix, without performing k-fold cross-validation.
+
+        Args:
+            classifier (Model): sklearn model
+            chosen_labels {set|list} -- A set/list of strings of which labels to use for classification.
+              Defaults to all labels.
+            verbose (bool): Whether or not to print process indicators. Defaults to True.
+        """
+        pieces = self.get_pieces()
+
+        if chosen_labels is None:
+            M = self.mat
+            classes = set(self.loc_idx.values())
+        else:
+            M = np.vstack([v for k, v in pieces.items() if k in chosen_labels])
+            classes = set(chosen_labels)
+
+        class_labels = {c: i for i, c in enumerate(classes)}
+        f1_average = 'binary' if len(class_labels) <= 2 else None
+        class_pieces = []
+
+        for label, val in pieces.items():
+            if label not in classes:
+                continue
+            num_items = val.shape[0]
+            class_pieces.extend([class_labels[label]] * num_items)
+        y = np.array(class_pieces)
+
+        stats = {}
+        if verbose:
+            print('Training model...')
+        X_train, X_test, y_train, y_test = train_test_split(M, y, **kwargs)
+        classifier.fit(X_train, y_train)
+        if verbose:
+            print('Evaluating model...')
+        y_hat = classifier.predict(X_test)
+        acc = accuracy_score(y_test, y_hat)
+        f1 = f1_score(y_test, y_hat, average=f1_average)
+        return (acc, f1)
 
     def custom_classify(self, classifiers, chosen_labels=None, n_splits=5, verbose=True):
         """Tests the performance of a classifier on the MarkedMatrix
