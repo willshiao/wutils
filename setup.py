@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='wutils',
-    version='0.1.4',
+    version='0.1.5',
     author='William Shiao',
     author_email='willshiao@gmail.com',
     packages=['wutils'],
