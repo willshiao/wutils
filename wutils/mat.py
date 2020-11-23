@@ -276,11 +276,12 @@ class MarkedMatrix:
         return None
 
     @staticmethod
-    def from_df(df, data_col, label_col):
-        labels = set(df[label_col])
+    def from_df(df, data_col, label_col, labels=None):
+        if labels is None:
+            labels = set(df[label_col])
         mapping = []
 
         for label in labels:
-            sub_df = df[df['label'] == label]
+            sub_df = df[df[label_col] == label]
             mapping.append((label, np.vstack(list(sub_df[data_col]))))
         return MarkedMatrix(mapping)
