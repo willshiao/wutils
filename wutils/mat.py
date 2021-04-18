@@ -122,7 +122,7 @@ class MarkedMatrix:
             last_loc = loc
         return out
 
-    def single_split_classify(self, classifier, chosen_labels=None, verbose=True, **kwargs):
+    def single_split_classify(self, classifier, chosen_labels=None, verbose=True, return_labels=True, **kwargs):
         """Tests the performance of a classifier on the MarkedMatrix, without performing k-fold cross-validation.
 
         Args:
@@ -161,6 +161,8 @@ class MarkedMatrix:
         y_hat = classifier.predict(X_test)
         acc = accuracy_score(y_test, y_hat)
         f1 = f1_score(y_test, y_hat, average=f1_average)
+        if return_labels:
+            return ((acc, f1), class_labels)
         return (acc, f1)
 
     def custom_classify(self, classifiers, chosen_labels=None, n_splits=5, verbose=True):
