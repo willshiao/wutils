@@ -57,3 +57,27 @@ def sample_mat(mat, n, replace=False, return_idxs=False):
     if return_idxs:
         return (row_idxs, sampled)
     return sampled
+
+def interleave_mat(A, B, warn_on_size_diff=True):
+    """Interleaves the rows of two Numpy matrices together.
+    By default, it will output a warning if the two matrices are different sizes, and truncate the remaining rows.
+
+    Args:
+        A (np.array): The first matrix
+        B (np.array): The second matrix
+        warn_on_size_diff (bool, optional): Whether or not to output a warning on size difference. Defaults to True.
+    """
+    if A.shape[1] != B.shape[1]:
+        raise Exception('A and B must have the same number of columns')
+    if warn_on_size_diff and A.shape[0] != B.shape[0]:
+        print('Warning: A and B have a different number of rows. Some rows will be truncated.')
+
+    min_rows = min(A.shape[0], B.shape[0])
+    n_cols = A.shape[1]
+    output = np.zeros((min_rows * 2, n_cols))
+
+    for i in range(min_rows):
+        output[i*2] = A[i, :]
+        output[i*2+1] = B[i, :]
+
+    return output
