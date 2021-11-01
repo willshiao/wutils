@@ -66,6 +66,9 @@ def interleave_mat(A, B, warn_on_size_diff=True):
         A (np.array): The first matrix
         B (np.array): The second matrix
         warn_on_size_diff (bool, optional): Whether or not to output a warning on size difference. Defaults to True.
+
+    Returns:
+        np.array: A numpy array with rows, where even rows are from A and odd rows are from B.
     """
     if A.shape[1] != B.shape[1]:
         raise Exception('A and B must have the same number of columns')
@@ -81,3 +84,22 @@ def interleave_mat(A, B, warn_on_size_diff=True):
         output[i*2+1] = B[i, :]
 
     return output
+
+def create_alt_array(n, first_val = 0, second_val = 1):
+    """Creates an array filled with alternating values.
+    With the default values, this would result in an array of size `n` with the following pattern:
+
+    [0, 1, 0, 1..., 0, 1]
+
+    Args:
+        n (int): The target size of the array to generate.
+        first_val (int, optional): The first value to use (on even indices). Defaults to 0.
+        second_val (int, optional): The second value to use (on odd indices). Defaults to 1.
+
+    Returns:
+        np.array: A numpy array with alternating values of size `n`.
+    """
+    arr = np.empty((n,))
+    arr[::2] = first_val
+    arr[1::2] = second_val
+    return arr

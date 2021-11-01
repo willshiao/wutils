@@ -271,7 +271,7 @@ class MarkedMatrix:
             plt.title(f'Distribution plot of {"NN" if nn_only else "all"} distances to {label}')
             plt.legend()
 
-    def row_label(row_num):
+    def row_label(self, row_num):
         for loc, name in self.loc_idx.items():
             if row_num < loc:
                 return name
