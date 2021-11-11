@@ -51,12 +51,52 @@ def sample_mat(mat, n, replace=False, return_idxs=False):
     Returns:
         np.array|tuple -- Returns a matrix containing the sampled rows, or if `return_idxs` is set,
             returns a tuple containing the indexes of the selected rows and the sampled matrix.
-    """    
+    """
     row_idxs = np.random.choice(mat.shape[0], n, replace=replace)
     sampled = mat[row_idxs, :]
     if return_idxs:
         return (row_idxs, sampled)
     return sampled
+
+def random_interleave_mat(A, B):
+    """Randomly interleaves the rows of two Numpy matrices together. A and B can be different sizes.
+
+    Args:
+        A (np.array): The first matrix
+        B (np.array): The second matrix
+
+    Returns:
+        np.array: A Numpy array with rows taken from A and B in random order.
+    """
+    stacked = np.vstack((A, B))
+    total_rows = stacked.shape[0]
+    a_rows = A.shape[0]
+    row_idxs = np.random.choice(total_rows, total_rows, replace=False)
+    output = total_rows[row_idxs, :]
+    labels = (row_idxs >= a_rows)
+    return output, labels
+
+def mask_data(ten, frac=0.1):
+    """Randomly masks out values from a N-dimensional Numpy tensor.
+    Creates a copy of the input tensor.
+
+    Args:
+        ten (np.array): The tensor to pull values from.
+        frac (float, optional): The ratio of values to mask out. Defaults to 0.1.
+
+    Returns:
+        (np.array, np.array, np.array): Returns 3 values:
+            1. The input array with values masked out.
+            2. The values taken from the input array.
+            3. The indices (when using np.flat indexing) where the values were taken.
+    """
+    n_el = ten.size
+    n_select = round(frac * ten)
+    remove_idxs = np.random.choice(n_el, n_select, replace=False)
+    out = ten.copy()
+    missing_vals = ten.flat[remove_idxs]
+    out.flat[remove_idxs] = 0
+    return (out, missing_vals, remove_idxs)
 
 def interleave_mat(A, B, warn_on_size_diff=True):
     """Interleaves the rows of two Numpy matrices together.
