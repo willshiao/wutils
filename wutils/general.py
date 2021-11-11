@@ -26,6 +26,7 @@ def load_pickle(loc):
     Very helpful in avoiding overwritting a pickle when you read using 'wb'
     instead of 'rb' at 3 AM.
     Also provides a convinient 1-liner to read a pickle without leaving an open file handle.
+    If we encounter a PickleError, it will try to use pickle5.
 
     Arguments:
         loc {Path|str} -- A location to read the pickled object from.
@@ -33,8 +34,14 @@ def load_pickle(loc):
     Returns:
         Any -- The pickled object.
     """
-    with open(loc, 'rb') as f:
-        return pickle.load(f)
+    try:
+        with open(loc, 'rb') as f:
+            return pickle.load(f)
+    except pickle.PickleError:
+        # Maybe it's a pickle5 and we use Python <= 3.8.3
+        import pickle5
+        with open(loc, 'rb') as f:
+            return pickle5.load(f)
 
 def sample_mat(mat, n, replace=False, return_idxs=False):
     """Sample `n` random rows from mat.
