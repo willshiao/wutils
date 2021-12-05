@@ -65,7 +65,7 @@ def sample_mat(mat, n, replace=False, return_idxs=False):
         return (row_idxs, sampled)
     return sampled
 
-def random_interleave_mat(A, B):
+def random_interleave_mat(A, B, seed=None):
     """Randomly interleaves the rows of two Numpy matrices together. A and B can be different sizes.
 
     Args:
@@ -78,12 +78,13 @@ def random_interleave_mat(A, B):
     stacked = np.vstack((A, B))
     total_rows = stacked.shape[0]
     a_rows = A.shape[0]
-    row_idxs = np.random.choice(total_rows, total_rows, replace=False)
-    output = total_rows[row_idxs, :]
+    rng = np.random.default_rng(seed=seed)
+    row_idxs = rng.choice(total_rows, total_rows, replace=False)
+    output = stacked[row_idxs, :]
     labels = (row_idxs >= a_rows)
     return output, labels
 
-def mask_data(ten, frac=0.1):
+def mask_data(ten, frac=0.1, return_full_idxs=True):
     """Randomly masks out values from a N-dimensional Numpy tensor.
     Creates a copy of the input tensor.
 
@@ -98,11 +99,13 @@ def mask_data(ten, frac=0.1):
             3. The indices (when using np.flat indexing) where the values were taken.
     """
     n_el = ten.size
-    n_select = round(frac * ten)
+    n_select = round(frac * n_el)
     remove_idxs = np.random.choice(n_el, n_select, replace=False)
     out = ten.copy()
     missing_vals = ten.flat[remove_idxs]
     out.flat[remove_idxs] = 0
+    if return_full_idxs:
+        return (out, missing_vals, np.unravel_index(remove_idxs, ten.shape))
     return (out, missing_vals, remove_idxs)
 
 def interleave_mat(A, B, warn_on_size_diff=True):
