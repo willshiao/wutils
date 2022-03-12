@@ -26,10 +26,13 @@ def mask_torch_data(ten, frac=0.1, return_full_idxs=True, device='cpu', detach=T
 
     if detach:
         out = out.detach()
-    flat_out = out.view(-1)
+    if out.is_contiguous():
+        flat_out = out.view(-1)
+    else:
+        flat_out = out.reshape(-1)
     missing_vals = flat_out[remove_idxs]
     flat_out[remove_idxs] = 0
-    return (out, missing_vals, remove_idxs)
+    return (flat_out.view(ten.size()), missing_vals, remove_idxs)
 
 def select_with_flat_idxs(ten, flat_idxs, with_batch=False):
     ten_flat = ten.view(-1)
