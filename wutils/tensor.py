@@ -19,7 +19,7 @@ def create_cp(dims, rank, sparsity=None, method='rand', weights=False, return_te
 
     if sparsity is not None:
         if isinstance(sparsity, float):
-            sparsity = (sparsity for _ in range(n_dims))
+            sparsity = [sparsity for _ in range(n_dims)]
         elif not isinstance(sparsity, list) and not isinstance(sparsity, tuple):
             raise ValueError('Sparsity parameter should either be a float or tuple/list.')
 
@@ -28,7 +28,7 @@ def create_cp(dims, rank, sparsity=None, method='rand', weights=False, return_te
             n_el = dims[dim] * rank
             to_del = round(sparsity[dim] * n_el)
             idxs = torch.tensor(random.sample(range(n_el), to_del))
-            to_del.view(-1)[idxs] = 0
+            factors[dim].view(-1)[idxs] = 0
             # torch.randperm(n_el, device=device)[:n_select]
 
     ten = None
@@ -41,8 +41,8 @@ def create_cp(dims, rank, sparsity=None, method='rand', weights=False, return_te
         else:
             flat = ten.view(-1)
             nzs = torch.nonzero(flat, as_tuple=True)[0]
-            nvec = torch.randn(nzs.size(1))
-            flat[nzs] += noise * (norm(ten) / norm(nten)) * nvec
+            nvec = torch.randn(nzs.size(0))
+            flat[nzs] += noise * (norm(ten) / norm(nvec)) * nvec
 
     if return_tensor:
         if ten is None:
