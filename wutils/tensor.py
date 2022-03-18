@@ -27,6 +27,8 @@ def create_cp(dims, rank, sparsity=None, method='rand', weights=False, return_te
         for dim in range(n_dims):
             n_el = dims[dim] * rank
             to_del = round(sparsity[dim] * n_el)
+            if to_del == 0:
+                continue
             idxs = torch.tensor(random.sample(range(n_el), to_del))
             factors[dim].view(-1)[idxs] = 0
             # torch.randperm(n_el, device=device)[:n_select]
