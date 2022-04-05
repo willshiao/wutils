@@ -82,8 +82,7 @@ def create_cp(dims, rank, sparsity=None, method='rand', weights=False, return_te
     return factors
 
 # Proportional sampling, like in the Tensor Toolbox
-# Slightly different in that it returns the number in each bin
-# Equivalent to accumarray(prosample(n_samples, prob), 1, [rank 1]) in MATLAB
+# If return_counts=True: equivalent to accumarray(prosample(n_samples, prob), 1, [rank 1]) in MATLAB
 def probsample(n_samples, prob, return_counts=True):
     if return_counts:
         bins = torch.cat([torch.zeros(1), torch.cumsum(prob, dim=0)])
